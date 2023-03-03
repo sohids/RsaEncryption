@@ -1,0 +1,12 @@
+**/.vs
+**/bin
+**/obj
+**/*.user
+**/Logs
+**/*.log
+**/*.env
+**/upload
+*.env
+*.jpg
+*.jpeg
+*.png
