@@ -18,7 +18,7 @@ namespace RsaEncryption
             var publicKeyBytes = Convert.FromBase64String(publicKeyString);
             
             //SHA Hash 
-            var newPassword = GenerateSsa256("helloWorld");
+            var newPassword = GenerateSha256("helloWorld");
 
             //Preparing the password for encryption: Converting to byte array 
             var newPasswordBytes = Encoding.UTF8.GetBytes(newPassword);
@@ -35,7 +35,7 @@ namespace RsaEncryption
             Console.WriteLine(encryptedString);
         }
 
-        private static string GenerateSsa256(string password)
+        private static string GenerateSha256(string password)
         {
             var bytesToHash = Encoding.UTF8.GetBytes(password);
             var sha256 = SHA256.Create();
