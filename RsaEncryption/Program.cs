@@ -2,43 +2,46 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace  RsaEncryption
+namespace RsaEncryption
 {
+    /// <summary>
+    /// 1. Decode public key to byte array
+    /// 2. Do SHA256 hash the new password
+    /// 3. Do RSA encryption the password using public key
+    /// 4. Encode the resultant encrypted string to base64 
+    /// </summary>
     public class Program
     {
         public static void Main()
         {
             const string publicKeyString = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCrWmaVPDI1hvYV5MT7oNJJCpA10xbLzI3CqbBOihQ7nPFPfP+zKgbS03kVUbXEOxH8CnASxSeAucHIg3q4n2akfJdpxW+FZTqoENNB6HS3+Pl5f9BX2OartDSnvXn0Zas9YnyMuIo+1+SOgkPz0aIL3PHtPoQw4qBEOtMXkM4RHwIDAQAB";
-            const string newPassword = "Hello World";
             var publicKeyBytes = Convert.FromBase64String(publicKeyString);
+            
+            //SHA Hash 
+            var newPassword = GenerateSsh256("helloWorld");
 
-            using var rsa = new RSACryptoServiceProvider();
-            var publicKeyParameters = new RSAParameters
-            {
-                Modulus = publicKeyBytes,
-                Exponent = new byte[] { 1, 0, 1 }
-            };
+            //Preparing the password for encryption: Converting to byte array 
+            var newPasswordBytes = Encoding.UTF8.GetBytes(newPassword);
 
-            rsa.ImportParameters(publicKeyParameters);
+            //Importing the public key into the RSA algorithm 
+            var rsa = new RSACryptoServiceProvider();
+            rsa.ImportSubjectPublicKeyInfo(publicKeyBytes, out _);
 
-            var uuid = Guid.NewGuid().ToString();
-            var uuidBytes = Encoding.UTF8.GetBytes(uuid);
-            var encryptableText = Encoding.UTF8.GetBytes(newPassword);
-            var dataToEncrypt = new byte[uuidBytes.Length + encryptableText .Length];
-            uuidBytes.CopyTo(dataToEncrypt, 0);
-            encryptableText .CopyTo(dataToEncrypt, uuidBytes.Length);
+            //Encrypting the data 
+            var encryptedData = rsa.Encrypt(newPasswordBytes, false);
 
-            var encryptedData = rsa.Encrypt(dataToEncrypt, false);
+            //Converting the resultant encrypted string to base64
             var encryptedString = Convert.ToBase64String(encryptedData);
+            Console.WriteLine(encryptedString);
+        }
 
-            // Display the encrypted string and UUID
-            Console.WriteLine("Encrypted string: {0}", encryptedString);
-            //Console.WriteLine("Original String: {0}", encryptableText );
-
-            byte[] bytes = Encoding.UTF8.GetBytes(encryptedString);
-            var base64String = Convert.ToBase64String(bytes);
-
-            Console.WriteLine("UUID: {0}", uuid);
+        private static string GenerateSsh256(string password)
+        {
+            var bytesToHash = Encoding.UTF8.GetBytes(password);
+            var sha256 = SHA256.Create();
+            var hashValue = sha256.ComputeHash(bytesToHash);
+            var hexString = BitConverter.ToString(hashValue).Replace("-", "");
+            return hexString;
         }
     }
 }
